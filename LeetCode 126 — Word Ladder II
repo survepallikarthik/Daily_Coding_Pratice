@@ -1,0 +1,128 @@
+import java.util.*;
+
+class Solution {
+
+    List<List<String>> result = new ArrayList<>();
+    Map<String, Integer> distance = new HashMap<>();
+    Set<String> wordSet;
+    String endWord;
+
+    public List<List<String>> findLadders(
+            String beginWord,
+            String endWord,
+            List<String> wordList) {
+
+        this.endWord = endWord;
+        wordSet = new HashSet<>(wordList);
+
+        if (!wordSet.contains(endWord)) {
+            return result;
+        }
+
+        bfs(beginWord);
+
+        if (!distance.containsKey(endWord)) {
+            return result;
+        }
+
+        List<String> path = new ArrayList<>();
+        path.add(beginWord);
+
+        dfs(beginWord, path);
+
+        return result;
+    }
+
+    // BFS: find shortest distance of every word
+    private void bfs(String beginWord) {
+
+        Queue<String> queue = new LinkedList<>();
+
+        queue.offer(beginWord);
+        distance.put(beginWord, 0);
+
+        while (!queue.isEmpty()) {
+
+            String word = queue.poll();
+
+            int currentDistance = distance.get(word);
+
+            char[] chars = word.toCharArray();
+
+            for (int i = 0; i < chars.length; i++) {
+
+                char original = chars[i];
+
+                for (char c = 'a'; c <= 'z'; c++) {
+
+                    if (c == original) {
+                        continue;
+                    }
+
+                    chars[i] = c;
+
+                    String next = new String(chars);
+
+                    if (!wordSet.contains(next)) {
+                        continue;
+                    }
+
+                    // First time visiting
+                    if (!distance.containsKey(next)) {
+
+                        distance.put(
+                            next,
+                            currentDistance + 1
+                        );
+
+                        queue.offer(next);
+                    }
+                }
+
+                chars[i] = original;
+            }
+        }
+    }
+
+    // DFS: build only shortest paths
+    private void dfs(String word, List<String> path) {
+
+        if (word.equals(endWord)) {
+
+            result.add(new ArrayList<>(path));
+            return;
+        }
+
+        char[] chars = word.toCharArray();
+
+        for (int i = 0; i < chars.length; i++) {
+
+            char original = chars[i];
+
+            for (char c = 'a'; c <= 'z'; c++) {
+
+                if (c == original) {
+                    continue;
+                }
+
+                chars[i] = c;
+
+                String next = new String(chars);
+
+                // Move only one level closer to end
+                if (distance.containsKey(next)
+                        && distance.get(next)
+                        == distance.get(word) + 1) {
+
+                    path.add(next);
+
+                    dfs(next, path);
+
+                    path.remove(path.size() - 1);
+                }
+            }
+
+            chars[i] = original;
+        }
+    }
+}
